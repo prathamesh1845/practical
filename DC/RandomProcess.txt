@@ -1,0 +1,69 @@
+% Number of samples and realizations
+num_samples = 1000;
+num_realizations = 100;
+
+% Time vector
+t = linspace(0, 1, num_samples);
+
+% Constants
+A = 1;  % Amplitude
+omega_c = 2 * pi * 1;  % Angular frequency
+
+% Generate random theta uniformly distributed in (-pi, pi)
+theta = -pi + (pi + pi) * rand(num_realizations, 1);
+
+% Generate realizations of the process x(t)
+x = zeros(num_realizations, num_samples);
+for i = 1:num_realizations
+    x(i, :) = A * cos(omega_c * t + theta(i));
+end
+
+% Calculate the mean at each time point
+mean_x = mean(x);
+
+% Plot the mean
+figure;
+plot(t, mean_x);
+title('Mean of x(t)');
+xlabel('Time t');
+ylabel('Mean');
+grid on;
+
+% Initialize autocorrelation matrix
+R_x = zeros(num_samples, num_samples);
+
+% Calculate autocorrelation for each realization
+for i = 1:num_realizations
+    R_x = R_x + x(i, :)' * x(i, :);
+end
+
+% Average over all realizations
+R_x = R_x / num_realizations;
+
+% Plot the autocorrelation function for a fixed time shift
+tau = 10;  % Example time shift
+figure;
+plot(t, R_x(:, tau));
+title(['Autocorrelation Function R_x(t, t+', num2str(tau), ')']);
+xlabel('Time t');
+ylabel('Autocorrelation');
+grid on;
+
+% Check if the mean is constant
+is_mean_constant = all(abs(mean_x - mean_x(1)) < 1e-6);
+
+% Check if the autocorrelation function depends only on time difference
+tau_values = [1, 10, 20];
+is_autocorrelation_wss = true;
+for tau = tau_values
+    if any(abs(R_x(:, tau) - R_x(1, tau)) > 1e-6)
+        is_autocorrelation_wss = false;
+        break;
+    end
+end
+
+if is_mean_constant && is_autocorrelation_wss
+    disp('The process x(t) is Wide-Sense Stationary (WSS).');
+else
+    disp('The process x(t) is NOT Wide-Sense Stationary (WSS).');
+end
